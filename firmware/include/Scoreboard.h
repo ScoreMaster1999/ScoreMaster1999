@@ -18,14 +18,13 @@ public:
 
     int GetScore() const { return m_score; }
 
-    void UpdateScore(uint32_t data);
+    void BroadcastScore();
+    void UpdateScore(uint32_t data) { m_score = data; };
     void InitBLE();
 
 private:
     const char *m_device_name;
 
-    BLEServer *m_server;
-    BLEService *m_score_service;
     BLECharacteristic *m_score_characteristic;
     ScoreWriteCallbacks *m_write_callbacks;
 

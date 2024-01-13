@@ -15,37 +15,36 @@ public:
 private:
     Scoreboard *m_scoreboard;
 
-}
+};
 
 Scoreboard::Scoreboard(const char *device_name) 
-    : m_device_name(device_name), m_server(nullptr),
-    m_score_service(nullptr), m_score_characteristic(nullptr),
+    : m_device_name(device_name), m_score_characteristic(nullptr),
     m_write_callbacks(nullptr)
 {
 }
 
 Scoreboard::~Scoreboard()
 {
-    delete m_write_callbacks;
+    delete m_score_characteristic;
 }
 
 void Scoreboard::InitBLE()
 {
     BLEDevice::init(m_device_name);
 
-    m_server = BLEDevice::createServer();
-    m_score_service = m_server->createService(SCORE_SU);
-    m_score_characteristic = m_score_service->createCharacteristic(
+    BLEServer *server = BLEDevice::createServer();
+    BLEService *service = server->createService(SCORE_SU);
+    m_score_characteristic = service->createCharacteristic(
         SCORE_CU,
         BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_WRITE);
 
     /* Bad practice for embedded, but esp library has forced my hand */
     m_write_callbacks = new ScoreWriteCallbacks(this);
-    m_score_characteristic.setCallbacks(m_write_callbacks);
-
+    m_score_characteristic->setCallbacks(m_write_callbacks);
     m_score_characteristic->setValue(m_score);
-    m_score_service->start();
+
+    service->start();
 
     BLEAdvertising *advertising = BLEDevice::getAdvertising();
     advertising->addServiceUUID(SCORE_SU);
@@ -55,8 +54,7 @@ void Scoreboard::InitBLE()
     BLEDevice::startAdvertising();
 }
 
-void Scoreboard::UpdateScore(uint32_t score)
+void Scoreboard::BroadcastScore()
 {
-    m_score = score;
-    m_score_characteristic->setValue(score);
+    m_score_characteristic->setValue(m_score);
 }

@@ -23,6 +23,8 @@ void loop()
     long current_time = millis();
 
     /* Checks if ball is in front */
-    if (motion_detector.Poll(current_time))
+    if (motion_detector.Poll(current_time)) {
         scoreboard.UpdateScore(scoreboard.GetScore() + 1);
+        scoreboard.BroadcastScore();
+    }
 }
