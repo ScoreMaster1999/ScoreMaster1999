@@ -5,5 +5,8 @@ build: src/main.cpp
 upload:
 	pio run --target upload
 
+monitor:
+	minicom -D /dev/ttyUSB0 -b 115200
+
 clean:
 	pio run --target clean
