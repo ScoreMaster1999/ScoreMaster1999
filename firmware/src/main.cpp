@@ -1,14 +1,35 @@
 #include <Arduino.h>
+#include "Scoreboard.h"
 
-void setup() {
-  // No need to initialize the RGB LED
-  pinMode(2, OUTPUT);
+/* Constants */
+#define DEBUG_LED 2
+#define MOTION_POLL_PERIOD 10 // milliseconds
+
+/* Statics */
+Scoreboard scoreboard("ScoreMaster1999");
+MotionDetector motion_detector;
+
+long last_motion_poll = 0;
+
+void setup()
+{
+    Serial.begin(115200);
+    scoreboard.InitBLE();
+    pinMode(DEBUG_LED, OUTPUT);
 }
 
-// the loop function runs over and over again forever
-void loop() {
-  digitalWrite(2, HIGH);   // Turn the RGB LED white
-  delay(200);
-  digitalWrite(2, LOW);    // Turn the RGB LED off
-  delay(200);
+void loop()
+{
+    digitalWrite(DEBUG_LED, HIGH);
+
+    long current_time = millis();
+
+    /* Poll Timer */
+    if (current_time - last_motion_poll > MOTION_POLL_PERIOD) {
+        if (motion_detector.InFront())
+            scoreboard.BroadcastScoreEvent();
+    }
+
+    /* Check for scoring */
+    /* Listen for sync upates */
 }
