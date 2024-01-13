@@ -15,7 +15,7 @@ const SERVICE_UUID = "77b9bd36-de32-46bf-b340-9276b4c5d237"
 const CHARACTERISTIC_UUID = "361ef854-cd9f-4213-afb3-d7d3a1845f7f"
 
 export default function useBLE() {
-    const bleManager = use(() => new BleManager(), [])
+    const bleManager = useMemo(() => new BleManager(), [])
     const [devices, setDevices] = useState([])
     const [connectedDevice, setConnectedDevice] = useState(null)
     const [score, setScore] = useState(0);
@@ -112,7 +112,7 @@ export default function useBLE() {
           }
         
           const rawData = base64.decode(characteristic.value)
-          let newscore = -1;
+          let newscore = 0;
           
           setScore(newscore)
     }
@@ -128,5 +128,11 @@ export default function useBLE() {
           console.log("No Device Connected");
         }
       };
-
+    const disconnectFromDevice = () => {
+        if (connectedDevice) {
+          bleManager.cancelDeviceConnection(connectedDevice.id);
+          setConnectedDevice(null);
+          setHeartRate(0);
+        }
+      };
 }

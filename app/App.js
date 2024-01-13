@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import useBLE from "./ble";
 
 const App = () => {
   const [team1Score, setTeam1Score] = useState(0);
   const [team2Score, setTeam2Score] = useState(0);
 
+  const {
+    requestPermissions,
+    score,
+    disconnectFromDevice,
+    connectToDevice,
+    devices,
+    connectedDevice,
+    setScore
+  } = useBLE();
+
   const handleIncrementTeam1 = () => {
+    setScore(score + 1)
     setTeam1Score(team1Score + 1);
   };
 
@@ -14,13 +26,14 @@ const App = () => {
   };
 
   return (
+
     <View style={styles.container}>
       <Text style={styles.title}>Scoreboard</Text>
 
       <View style={styles.scoreContainer}>
         <View style={styles.teamContainer}>
           <Text style={styles.teamTitle}>Team 1</Text>
-          <Text style={styles.score}>{team1Score}</Text>
+          <Text style={styles.score}>{score}</Text>
           <TouchableOpacity onPress={handleIncrementTeam1}>
             <Text style={styles.button}>Increment</Text>
           </TouchableOpacity>
