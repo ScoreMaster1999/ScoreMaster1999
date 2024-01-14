@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Platform } from "react-native";
+import { PermissionsAndroid, Platform } from "react-native";
 import {
   BleError,
   BleManager,
@@ -14,10 +14,11 @@ import base64 from "react-native-base64";
 const SERVICE_UUID = "77b9bd36-de32-46bf-b340-9276b4c5d237"
 const CHARACTERISTIC_UUID = "361ef854-cd9f-4213-afb3-d7d3a1845f7f"
 
-export default function useBLE() {
+function useBLE() {
     const bleManager = useMemo(() => new BleManager(), [])
     const [devices, setDevices] = useState([])
-    const [connectedDevices, setConnectedDevices] = useState([])
+    const [connD1, setConnd1] = useState(null)
+    const [connD2, setConnd2] = useState(null)
     const [score1, setScore1] = useState(0);
     const [score2, setScore2] = useState(0);
 
@@ -70,27 +71,30 @@ export default function useBLE() {
         }
       };
     }
-    const startScan = () => {
-        bleManager.startDeviceScan(null, {
-        allowDuplicates: false,
-        },
-        async (error, device) => {
-        if (error) {
-            bleManager.stopDeviceScan()
-        }
-        if (device.title === "ScoreMaster1999") {
-            setDevices([...devices, device])
-            // bleManager.stopDeviceScan()
-        }
-        }
-        )
-    }
+    const isDuplicteDevice = (devices, nextDevice) =>
+    devices.findIndex((device) => nextDevice.id === device.id) > -1;
+
+    const startScan = () =>
+    bleManager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        console.log(error);
+      }
+      if (device && device.name?.includes("ScoreMaster")) {
+        setDevices((prevState) => {
+          if (!isDuplicteDevice(prevState, device)) {
+            return [...prevState, device];
+          }
+          return prevState;
+        });
+      }
+    });
 
     const connectToDevice = async (device1, device2) => {
         try {
             const device1Connection = await bleManager.connectToDevice(device1.id);
             const device2Connection = await bleManager.connectToDevice(device2.id);
-            setConnectedDevices([...connectedDevices, device1Connection, device2Connection]);
+            setConnd1(device1Connection)
+            setConnd2(device2Connection)
             await device1Connection.discoverAllServicesAndCharacteristics();
             await device2Connection.discoverAllServicesAndCharacteristics();
             bleManager.stopDeviceScan();
@@ -112,8 +116,9 @@ export default function useBLE() {
           const rawData = base64.decode(characteristic.value)
           let newscore = 0;
           
-
-
+          for (var i = 0; i < 4; i++) {
+            newscore += rawData.charCodeAt(i) << (8 * i)
+          }
           setScore1(newscore)
     }
 
@@ -129,12 +134,26 @@ export default function useBLE() {
           const rawData = base64.decode(characteristic.value)
           let newscore = 0;
           
-
+          for (var i = 0; i < 4; i++) {
+            newscore += rawData.charCodeAt(i) << (8 * i)
+          }
 
           setScore2(newscore)
     }
-
+  
+    const updateScore = (score1, device) => {
+      if (device) {
+        device.writeCharacteristicWithResponseForService(
+          SERVICE_UUID,
+          CHARACTERISTIC_UUID,
+          base64.encode(String.fromCharCode(score1)),
+        )
+      } else {
+        console.log("No Device Connected");
+      }
+    }
     const startStreamingData = async (device1, device2) => {
+
         if (device1) {
           device1.monitorCharacteristicForService(
             SERVICE_UUID,
@@ -155,10 +174,26 @@ export default function useBLE() {
           }
       };
     const disconnectFromDevice = () => {
-        for (connectedDevice in connectedDevices) {
+        for (var connectedDevice in [connD1, connD2]) {
           bleManager.cancelDeviceConnection(connectedDevice.id);
-          setConnectedDevice(null);
-          setHeartRate(0);
         }
+        setConnd1(null)
+        setConnd2(null)
       };
+    return {
+      requestPermissions,
+      score1,
+      disconnectFromDevice,
+      connectToDevice,
+      devices,
+      connD1,
+      connD2,
+      setScore1,
+      score2,
+      setScore2,
+      startScan,
+      updateScore
+    }
 }
+
+export default useBLE;
