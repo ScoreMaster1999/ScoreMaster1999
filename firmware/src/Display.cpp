@@ -21,28 +21,24 @@ void init_display()
         Serial.println(F("SSD1306 allocation failed"));
     }
     display.clearDisplay();
+    display.setRotation(2); // flip display
 }
 
 void draw_number(uint32_t number)
 {
-    Serial.println("Drawing Number");
-    Serial.println(number);
     /* split into digits */
     const int digits[] = {number % 10, (number / 10) % 10};
-    Serial.print(digits[0]);
-    Serial.print(" ");
-    Serial.println(digits[1]);
 
     if (number > 99)
         return;
 
     display.clearDisplay();
 
-    display.drawChar(0, 0,
+    display.drawChar(40, 0,
                         '0' + digits[1], SSD1306_WHITE, SSD1306_BLACK,
                         4);
 
-    display.drawChar(50, 0,
+    display.drawChar(70, 0,
         '0' + digits[0], SSD1306_WHITE, SSD1306_BLACK,
         4);
 

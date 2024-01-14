@@ -7,7 +7,7 @@
 #define DEBUG_LED 2
 
 /* Statics */
-Scoreboard scoreboard("ScoreMaster1999");
+Scoreboard scoreboard("ScoreMaster1999_2");
 MotionDetector motion_detector;
 
 void setup()

@@ -10,12 +10,26 @@ public:
 
     /* Called whenever someone writes to the score characteristic */
     void onWrite(BLECharacteristic *rc) {
-        m_scoreboard->UpdateScore(0);
+        uint32_t x = *rc->getData();
+        m_scoreboard->UpdateScore(x);
     }
 
 private:
     Scoreboard *m_scoreboard;
 
+};
+
+/* See comment above "class ScoreWriteCallbacks" for more explanation */
+class ServerEventCallbacks : public BLEServerCallbacks
+{
+public:
+    void onWrite(BLEServer *s) {
+        s->startAdvertising(); // restart advertising
+    }
+
+    void onDisconnect(BLEServer *s) {
+        s->startAdvertising(); // restart advertising
+    }
 };
 
 Scoreboard::Scoreboard(const char *device_name) 
@@ -34,16 +48,24 @@ void Scoreboard::InitBLE()
     BLEDevice::init(m_device_name);
 
     BLEServer *server = BLEDevice::createServer();
+    server->setCallbacks(new ServerEventCallbacks());
+
     BLEService *service = server->createService(SCORE_SU);
     m_score_characteristic = service->createCharacteristic(
         SCORE_CU,
         BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_WRITE);
+            BLECharacteristic::PROPERTY_WRITE |
+            // BLECharacteristic::PROPERTY_INDICATE);
+            BLECharacteristic::PROPERTY_NOTIFY);
 
     /* Bad practice for embedded, but esp library has forced my hand */
     m_write_callbacks = new ScoreWriteCallbacks(this);
     m_score_characteristic->setCallbacks(m_write_callbacks);
     m_score_characteristic->setValue(m_score);
+
+    m_score_characteristic->addDescriptor(
+        new BLEDescriptor((uint16_t) 0x2902)
+    );
 
     service->start();
 
@@ -58,6 +80,7 @@ void Scoreboard::InitBLE()
 void Scoreboard::BroadcastScore()
 {
     m_score_characteristic->setValue(m_score);
+    m_score_characteristic->notify();
 }
 
 void Scoreboard::UpdateScore(uint32_t score)
