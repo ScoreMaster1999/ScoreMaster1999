@@ -21,25 +21,26 @@ const App = () => {
     setScore1,
     score2,
     setScore2,
-    startScan
+    startScan,
+    updateScore
   } = useBLE();
   const handleIncrementTeam1 = () => {
-    setScore1(score1 + 1)
-    setTeam1Score(team1Score + 1);
+    setScore1(score1 + 1),
+    updateScore(score1 + 1, connD1)
   };
 
   const handleSubmit = () => {
-    if (selected.length !== 2) {
-      setTop("Please select 2 devices")
+    if (selected.length !== 1) {
+      setTop("Please select 1 devices")
     } else {
-      connectToDevice(selected[0], selected[1])
+      connectToDevice(selected[0])
 
     }
   }
 
   const handleIncrementTeam2 = () => {
     setScore2(score2 + 1)
-    setTeam2Score(team1Score + 1);
+    updateScore(score2, connD2)
   };
 
   const scanForDevices = async () => {

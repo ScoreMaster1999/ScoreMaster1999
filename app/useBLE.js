@@ -89,22 +89,23 @@ function useBLE() {
       }
     });
 
-    const connectToDevice = async (device1, device2) => {
+    const connectToDevice = async (device1) => {
         try {
             const device1Connection = await bleManager.connectToDevice(device1.id);
-            const device2Connection = await bleManager.connectToDevice(device2.id);
-            setConnd1(device1)
-            setConnd2(device2)
+            // const device2Connection = await bleManager.connectToDevice(device2.id);
+            setConnd1(device1Connection)
+            // setConnd2(device2)
             await device1Connection.discoverAllServicesAndCharacteristics();
-            await device2Connection.discoverAllServicesAndCharacteristics();
+            // await device2Connection.discoverAllServicesAndCharacteristics();
             bleManager.stopDeviceScan();
-            startStreamingData(device1Connection, device2Connection);
+            startStreamingData(device1Connection);
           } catch (e) {
             console.log("FAILED TO CONNECT", e);
           }
     }
 
     const onScoreUpdate1 = (error, characteristic) => {
+        console.log("trying to update")
         if (error) {
             console.log(error);
             return -1;
@@ -119,7 +120,7 @@ function useBLE() {
           for (var i = 0; i < 4; i++) {
             newscore += rawData.charCodeAt(i) << (8 * i)
           }
-
+          console.log("made it!!")
           setScore1(newscore)
     }
 
@@ -142,18 +143,19 @@ function useBLE() {
           setScore2(newscore)
     }
   
-    const updateScoreUpdate = (score1, device) => {
+    const updateScore = (score1, device) => {
       if (device) {
         device.writeCharacteristicWithResponseForService(
           SERVICE_UUID,
           CHARACTERISTIC_UUID,
-          valueBase64,
+          base64.encode(String.fromCharCode(score1)),
         )
       } else {
         console.log("No Device Connected");
       }
     }
-    const startStreamingData = async (device1, device2) => {
+    const startStreamingData = async (device1) => {
+        console.log(device1)
         if (device1) {
           device1.monitorCharacteristicForService(
             SERVICE_UUID,
@@ -163,15 +165,15 @@ function useBLE() {
         } else {
           console.log("No Device Connected");
         }
-        if (device2) {
-            device2.monitorCharacteristicForService(
-              SERVICE_UUID,
-              CHARACTERISTIC_UUID,
-              onScoreUpdate2
-            );
-          } else {
-            console.log("No Device Connected");
-          }
+        // if (device2) {
+        //     device2.monitorCharacteristicForService(
+        //       SERVICE_UUID,
+        //       CHARACTERISTIC_UUID,
+        //       onScoreUpdate2
+        //     );
+        //   } else {
+        //     console.log("No Device Connected");
+        //   }
       };
     const disconnectFromDevice = () => {
         for (connectedDevice in [connD1, connD2]) {
@@ -191,7 +193,8 @@ function useBLE() {
       setScore1,
       score2,
       setScore2,
-      startScan
+      startScan,
+      updateScore
     }
 }
 
