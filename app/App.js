@@ -1,27 +1,41 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, CheckBox } from 'react-native';
 import DeviceModal from "./DeviceConnectionModal";
-import useBLE from "./ble";
+import useBLE from "./useBLE";
+import CheckBoxs from '@react-native-community/checkbox';
 
 const App = () => {
   const [team1Score, setTeam1Score] = useState(0);
   const [team2Score, setTeam2Score] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [top, setTop] = useState("Please connect to a device")
   const {
     requestPermissions,
     score1,
     disconnectFromDevice,
     connectToDevice,
     devices,
-    connectedDevice,
+    connD1,
+    connD2,
     setScore1,
     score2,
-    setScore2
+    setScore2,
+    startScan
   } = useBLE();
   const handleIncrementTeam1 = () => {
     setScore1(score1 + 1)
     setTeam1Score(team1Score + 1);
   };
+
+  const handleSubmit = () => {
+    if (selected.length !== 2) {
+      setTop("Please select 2 devices")
+    } else {
+      connectToDevice(selected[0], selected[1])
+
+    }
+  }
 
   const handleIncrementTeam2 = () => {
     setScore2(score2 + 1)
@@ -31,10 +45,21 @@ const App = () => {
   const scanForDevices = async () => {
     const isPermissionsEnabled = await requestPermissions();
     if (isPermissionsEnabled) {
-      scanForPeripherals();
+      console.log("permissions done")
+      startScan();
     }
   };
-
+  
+  const handleChange = (val, idx) => {
+    if(val) {
+      setSelected([...selected, devices[idx]])
+    } else {
+      arr = selected.filter((item) => {
+        return item !== devices[idx]
+      })
+      setSelected(arr)
+    }
+  }
 
   const hideModal = () => {
     setIsModalVisible(false);
@@ -43,12 +68,12 @@ const App = () => {
   const openModal = async () => {
     scanForDevices();
     setIsModalVisible(true);
+    console.log(devices)
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Please connect to a device</Text>
-      {connectedDevice ? (<>
+      {connD1 ? (<>
       <Text style={styles.title}>Scoreboard</Text>
 
       <View style={styles.scoreContainer}>
@@ -71,21 +96,31 @@ const App = () => {
       </>) :
       (
         <>
-          <Text style={styles.title}>Please connect to a device</Text>
+          <Text style={styles.title}>{top}</Text>
           <TouchableOpacity
-            onPress={connectedDevice ? disconnectFromDevice : openModal}
+            onPress={connD1 ? disconnectFromDevice : openModal}
             style={styles.ctaButton}
           >
             <Text style={styles.ctaButtonText}>
-              {connectedDevice ? "Disconnect" : "Connect"}
+              {connD1 ? "Disconnect" : "Connect"}
             </Text>
           </TouchableOpacity>
-          <DeviceModal
-            closeModal={hideModal}
-            visible={isModalVisible}
-            connectToPeripheral={connectToDevice}
-            devices={devices}
-          />
+          {isModalVisible ? 
+          <>
+            {devices.map((dev, idx) => (
+              <View key={idx}>  
+                <CheckBoxs
+                  value={selected.includes(dev)}
+                  onValueChange={(val) => handleChange(val, idx)}
+                />
+                <Text>{dev.name}</Text>
+              </View>
+            ))}
+            <TouchableOpacity 
+              onPress={handleSubmit}
+            ><Text>Pair</Text></TouchableOpacity>
+            </>
+          : <Text>Placeholder</Text>}
         </>
         
       )
