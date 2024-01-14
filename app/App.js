@@ -30,23 +30,22 @@ const App = () => {
   };
 
   const handleSubmit = () => {
-    if (selected.length !== 1) {
-      setTop("Please select 1 devices")
+    if (selected.length !== 2) {
+      setTop("Please select 2 devices")
     } else {
-      connectToDevice(selected[0])
+      connectToDevice(selected[0], selected[1])
 
     }
   }
 
   const handleIncrementTeam2 = () => {
     setScore2(score2 + 1)
-    updateScore(score2, connD2)
+    updateScore(score2 + 1, connD2)
   };
 
   const scanForDevices = async () => {
     const isPermissionsEnabled = await requestPermissions();
     if (isPermissionsEnabled) {
-      console.log("permissions done")
       startScan();
     }
   };
@@ -62,6 +61,16 @@ const App = () => {
     }
   }
 
+  const handleReset1 = () => {
+    setScore1(0);
+    updateScore(0, connD1)
+  }
+
+  const handleReset2 = () => {
+    setScore2(0);
+    updateScore(0, connD2)
+  }
+
   const hideModal = () => {
     setIsModalVisible(false);
   };
@@ -69,7 +78,6 @@ const App = () => {
   const openModal = async () => {
     scanForDevices();
     setIsModalVisible(true);
-    console.log(devices)
   };
 
   return (
@@ -84,6 +92,9 @@ const App = () => {
           <TouchableOpacity onPress={handleIncrementTeam1}>
             <Text style={styles.button}>Increment</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={handleReset1}>
+            <Text style={styles.button}>Reset 1</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.teamContainer}>
@@ -92,7 +103,12 @@ const App = () => {
           <TouchableOpacity onPress={handleIncrementTeam2}>
             <Text style={styles.button}>Increment</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={handleReset2}>
+            <Text style={styles.button}>Reset 2</Text>
+          </TouchableOpacity>
         </View>
+        
+        
       </View>
       </>) :
       (
@@ -144,14 +160,15 @@ const styles = StyleSheet.create({
   },
   scoreContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     width: '40%',
+    margin: 15,
   },
   teamContainer: {
     alignItems: 'center',
     padding: 10,
     borderWidth: 4,
-    margin: 5,
+    margin: 15,
   },
   teamTitle: {
     fontSize: 18,
