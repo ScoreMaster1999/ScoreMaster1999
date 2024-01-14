@@ -6,6 +6,8 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 
+#include "Display.h"
+
 #define SCORE_SU "77b9bd36-de32-46bf-b340-9276b4c5d237" // service uuid
 #define SCORE_CU "361ef854-cd9f-4213-afb3-d7d3a1845f7f" // characteristic uuid
 
@@ -19,7 +21,7 @@ public:
     int GetScore() const { return m_score; }
 
     void BroadcastScore();
-    void UpdateScore(uint32_t data) { m_score = data; };
+    void UpdateScore(uint32_t data);
     void InitBLE();
 
 private:
@@ -28,6 +30,7 @@ private:
     BLECharacteristic *m_score_characteristic;
     ScoreWriteCallbacks *m_write_callbacks;
 
+    // Display m_display;
     int m_score;
 };
 

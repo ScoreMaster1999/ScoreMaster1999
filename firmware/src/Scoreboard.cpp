@@ -58,3 +58,11 @@ void Scoreboard::BroadcastScore()
 {
     m_score_characteristic->setValue(m_score);
 }
+
+void Scoreboard::UpdateScore(uint32_t score)
+{
+    m_score = score;
+
+    /* Update display */
+    // m_display.DrawNumber(m_score);
+}
