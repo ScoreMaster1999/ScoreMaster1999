@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { PermissionsAndroid, Platform } from "react-native";
+import { Platform } from "react-native";
 import {
   BleError,
   BleManager,
@@ -17,8 +17,9 @@ const CHARACTERISTIC_UUID = "361ef854-cd9f-4213-afb3-d7d3a1845f7f"
 export default function useBLE() {
     const bleManager = useMemo(() => new BleManager(), [])
     const [devices, setDevices] = useState([])
-    const [connectedDevice, setConnectedDevice] = useState(null)
-    const [score, setScore] = useState(0);
+    const [connectedDevices, setConnectedDevices] = useState([])
+    const [score1, setScore1] = useState(0);
+    const [score2, setScore2] = useState(0);
 
     const requestAndroid31Permissions = async () => {
         const bluetoothScanPermission = await PermissionsAndroid.request(
@@ -65,15 +66,10 @@ export default function useBLE() {
             );
             return granted === PermissionsAndroid.RESULTS.GRANTED;
           } else {
-            const isAndroid31PermissionsGranted =
-              await requestAndroid31Permissions();
-    
-            return isAndroid31PermissionsGranted;
-          }
-        } else {
           return true;
         }
       };
+    }
     const startScan = () => {
         bleManager.startDeviceScan(null, {
         allowDuplicates: false,
@@ -84,25 +80,27 @@ export default function useBLE() {
         }
         if (device.title === "ScoreMaster1999") {
             setDevices([...devices, device])
-            bleManager.stopDeviceScan()
+            // bleManager.stopDeviceScan()
         }
         }
         )
     }
 
-    const connectToDevice = async (device) => {
+    const connectToDevice = async (device1, device2) => {
         try {
-            const deviceConnection = await bleManager.connectToDevice(device.id);
-            setConnectedDevice(deviceConnection);
-            await deviceConnection.discoverAllServicesAndCharacteristics();
+            const device1Connection = await bleManager.connectToDevice(device1.id);
+            const device2Connection = await bleManager.connectToDevice(device2.id);
+            setConnectedDevices([...connectedDevices, device1Connection, device2Connection]);
+            await device1Connection.discoverAllServicesAndCharacteristics();
+            await device2Connection.discoverAllServicesAndCharacteristics();
             bleManager.stopDeviceScan();
-            startStreamingData(deviceConnection);
+            startStreamingData(device1Connection, device2Connection);
           } catch (e) {
             console.log("FAILED TO CONNECT", e);
           }
     }
 
-    const onScoreUpdate = (error, characteristic) => {
+    const onScoreUpdate1 = (error, characteristic) => {
         if (error) {
             console.log(error);
             return -1;
@@ -114,22 +112,50 @@ export default function useBLE() {
           const rawData = base64.decode(characteristic.value)
           let newscore = 0;
           
-          setScore(newscore)
+
+
+          setScore1(newscore)
     }
 
-    const startStreamingData = async (device) => {
-        if (device) {
-          device.monitorCharacteristicForService(
+    const onScoreUpdate2 = (error, characteristic) => {
+        if (error) {
+            console.log(error);
+            return -1;
+          } else if (!characteristic?.value) {
+            console.log("No Data was recieved");
+            return -1;
+          }
+        
+          const rawData = base64.decode(characteristic.value)
+          let newscore = 0;
+          
+
+
+          setScore2(newscore)
+    }
+
+    const startStreamingData = async (device1, device2) => {
+        if (device1) {
+          device1.monitorCharacteristicForService(
             SERVICE_UUID,
             CHARACTERISTIC_UUID,
-            onScoreUpdate
+            onScoreUpdate1
           );
         } else {
           console.log("No Device Connected");
         }
+        if (device2) {
+            device2.monitorCharacteristicForService(
+              SERVICE_UUID,
+              CHARACTERISTIC_UUID,
+              onScoreUpdate2
+            );
+          } else {
+            console.log("No Device Connected");
+          }
       };
     const disconnectFromDevice = () => {
-        if (connectedDevice) {
+        for (connectedDevice in connectedDevices) {
           bleManager.cancelDeviceConnection(connectedDevice.id);
           setConnectedDevice(null);
           setHeartRate(0);
