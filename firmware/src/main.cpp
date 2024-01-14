@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Scoreboard.h"
 #include "MotionDetector.h"
+#include "Display.h"
 
 /* Constants */
 #define DEBUG_LED 2
@@ -14,6 +15,8 @@ void setup()
     Serial.begin(115200);
     scoreboard.InitBLE();
     pinMode(DEBUG_LED, OUTPUT);
+
+    init_display();
 }
 
 void loop()

@@ -1,4 +1,5 @@
 #include "Scoreboard.h"
+#include "Display.h"
 
 /* This syntax is dumb, but the esp library has forced my hand */
 class ScoreWriteCallbacks : public BLECharacteristicCallbacks
@@ -65,4 +66,5 @@ void Scoreboard::UpdateScore(uint32_t score)
 
     /* Update display */
     // m_display.DrawNumber(m_score);
+    draw_number(score);
 }
