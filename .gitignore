@@ -1,1 +1,6 @@
 .pio/
+
+app/android/
+app/ios/
+
+.vscode/

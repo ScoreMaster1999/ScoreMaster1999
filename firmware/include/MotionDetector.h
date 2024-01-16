@@ -3,7 +3,7 @@
 
 #define SCORE_COOLDOWN 1000 // milliseconds
 #define DISTANCE_THRESHOLD 50 // cm
-#define MOTION_POLL_PERIOD 10 // milliseconds
+#define MOTION_POLL_PERIOD 1 // milliseconds
 
 #include <SharpDistSensor.h>
 #include <MedianFilter.h>
